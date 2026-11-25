@@ -70,6 +70,41 @@
         </section>
       </div>
 
+      <!-- Street Wise Money agents -->
+      <section class="panel" style="margin-top: 1rem;" aria-label="Street Wise Money agents">
+        <h2>Street Wise Money — Agents</h2>
+        <p>Reporting chain: <strong>Bots → Vanguard Coordinator (Central Agent) → Jarvis → Goldwing</strong>. Each bot reports to the Coordinator, the Coordinator reports to Jarvis, and Jarvis reports to you. <strong>Nothing uploads to YouTube without your approval.</strong></p>
+
+        <h2>Central Agent summary</h2>
+        <div id="central-summary"><p>Loading agent reports…</p></div>
+
+        <h2>Video pipeline</h2>
+        <p>Pipeline: Idea → Script → Voiceover → Edit → Thumbnail → Approval → Scheduled → Published. Seeded episodes below are sample data.</p>
+        <ul class="clean" id="video-list"></ul>
+
+        <h2>All 7 bots</h2>
+        <div class="agent-grid" id="agent-cards"></div>
+
+        <h2>CEO Approval Queue</h2>
+        <p>Items waiting on Goldwing. Approving an upload only clears it for <em>you</em> to publish in YouTube Studio — Jarvis never uploads.</p>
+        <ul class="clean" id="approval-list"></ul>
+
+        <h2>Channel KPIs</h2>
+        <p>Enter your real numbers — no live YouTube connection, so nothing here is fetched or invented.</p>
+        <ul class="clean" id="kpi-list"></ul>
+        <p id="kpi-note" class="muted"></p>
+        <form class="chat-row" id="kpi-form">
+          <input type="number" id="kpi-subscribers" placeholder="Subscribers" aria-label="Subscribers">
+          <input type="number" id="kpi-views" placeholder="Views" aria-label="Views">
+          <input type="number" id="kpi-videos" placeholder="Videos published" aria-label="Videos published">
+          <input type="number" id="kpi-revenue" placeholder="28-day revenue ($)" aria-label="28-day revenue in dollars">
+          <button type="submit">Save KPIs</button>
+        </form>
+
+        <h2>Bot activity</h2>
+        <ul class="clean" id="activity-list"></ul>
+      </section>
+
       <!-- Settings -->
       <section class="panel settings" style="margin-top: 1rem;" aria-label="Settings">
         <h2>Settings</h2>
@@ -96,6 +131,12 @@
           <li><code>voice off</code> / <code>voice on</code></li>
           <li><code>street wise mode</code> / <code>classic mode</code></li>
           <li><code>stop</code> — interrupt Jarvis</li>
+          <li><code>agents report</code> / <code>agent briefing</code> — all 7 Street Wise bot reports via the Central Agent</li>
+          <li><code>street wise status</code> — pipeline, KPIs and approvals</li>
+          <li><code>show trend report</code> — top trends from the Trend Researcher</li>
+          <li><code>approvals</code> — what is waiting on Goldwing</li>
+          <li><code>approve video episode 1</code> / <code>approve episode 2</code></li>
+          <li><code>set subscribers 1250</code> / <code>set views …</code> / <code>set revenue …</code></li>
         </ul>
       </section>
     </main>
@@ -105,6 +146,8 @@
     </footer>
   </div>
 
+  <script src="agents.js"></script>
+  <script src="central-agent.js"></script>
   <script src="jarvis.js"></script>
   <script src="automation.js"></script>
 </body>

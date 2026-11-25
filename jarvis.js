@@ -264,6 +264,12 @@
       var routines = window.JarvisAutomation.listRoutines();
       if (routines.length) lines.push(routines.length + " automated routine" + (routines.length === 1 ? " is" : "s are") + " set up.");
     }
+    // Street Wise: the Central Agent's combined bot summary, if available.
+    if (window.VanguardAgent) {
+      var sw = window.VanguardAgent.getSummary();
+      lines.push("Street Wise: " + sw.summary);
+      if (sw.approvalsNeeded.length) lines.push(sw.approvalsNeeded.length + " approval item" + (sw.approvalsNeeded.length === 1 ? " is" : "s are") + " waiting on you.");
+    }
     return lines.join(" ");
   }
 
@@ -323,7 +329,7 @@
 
     // Help.
     if (/^(help|what can you do|commands)$/.test(lower)) {
-      respond("I can tell the time and date, give a briefing, set timers and reminders, take notes, run your automated routines, and tell a joke. Say “help” any time, or look at the commands list below.");
+      respond("I can tell the time and date, give a briefing, set timers and reminders, take notes, run your automated routines, and tell a joke. For Street Wise, say “agents report”, “approvals”, “show trend report”, or “approve video episode 1”. Say “help” any time, or look at the commands list below.");
       return;
     }
 
@@ -400,6 +406,90 @@
       notes = []; saveJSON(LS.notes, notes);
       if (window.JarvisAutomation) window.JarvisAutomation.renderNotes();
       respond("Notes cleared.");
+      return;
+    }
+
+    // ----- Street Wise Money: bots -> Central Agent -> Jarvis -> Goldwing -----
+    // These run before the generic fallback. They only report and prepare;
+    // nothing here uploads to YouTube — approvals are Goldwing-only.
+    if (/agents? report|agent briefing|street wise status|youtube status|video pipeline/.test(lower)) {
+      if (window.VanguardAgent) {
+        var briefing = window.VanguardAgent.getJarvisBriefing();
+        if (window.VanguardAgentUI) window.VanguardAgentUI.render();
+        respond(briefing.text);
+      } else {
+        respond("The Street Wise agents are not loaded yet. Reload the page and try again.");
+      }
+      return;
+    }
+    if (/show trend report|trend report|trends/.test(lower)) {
+      if (window.StreetWise) {
+        var trendBot = window.StreetWise.getBot("trend");
+        var tr = trendBot.report();
+        respond("Trend Researcher report (sample trends, not live data). " + tr.done + " Next: " + tr.next);
+      } else {
+        respond("The Trend Researcher is not loaded yet.");
+      }
+      return;
+    }
+    if (/approvals|approval queue|what needs approval|waiting on me/.test(lower)) {
+      if (window.VanguardAgent) {
+        var pending = window.VanguardAgent.pendingApprovals();
+        if (!pending.length) { respond("Nothing is waiting on your approval right now."); return; }
+        respond("Waiting on your approval: " + pending.map(function (a) { return a.title; }).join("; ") + ". Say “approve video episode 1” to approve one.");
+      } else {
+        respond("The approval queue is not loaded yet.");
+      }
+      return;
+    }
+    if (/approve (video|episode|idea)/.test(lower)) {
+      if (window.VanguardAgent) {
+        var approved = window.VanguardAgent.approveVideo(lower);
+        if (approved) {
+          if (window.VanguardAgentUI) window.VanguardAgentUI.render();
+          respond("Approved: " + approved.title + ". That clears it for you to act on in YouTube Studio — I do not upload anything myself.");
+        } else {
+          respond("I could not find a pending approval matching that. Say “approvals” to hear what is waiting on you.");
+        }
+      } else {
+        respond("The approval queue is not loaded yet.");
+      }
+      return;
+    }
+    if (/reject (video|episode|idea)/.test(lower)) {
+      if (window.VanguardAgent) {
+        var items = window.VanguardAgent.pendingApprovals();
+        var target = null;
+        var numMatch = lower.match(/episode\s*0*(\d+)/);
+        items.forEach(function (a) {
+          if (numMatch && a.id.indexOf("ep00" + parseInt(numMatch[1], 10)) !== -1) target = a;
+        });
+        if (target) {
+          window.VanguardAgent.decideApproval(target.id, "rejected");
+          if (window.VanguardAgentUI) window.VanguardAgentUI.render();
+          respond("Rejected: " + target.title + ".");
+        } else {
+          respond("I could not find a pending approval matching that. Say “approvals” to hear what is waiting on you.");
+        }
+      } else {
+        respond("The approval queue is not loaded yet.");
+      }
+      return;
+    }
+    // Channel KPIs, entered by Goldwing: "set subscribers 1250", "set views 12000", etc.
+    var kpiMatch = lower.match(/set (subscribers?|views?|videos? published|revenue)\s+([\d,.]+)k?/);
+    if (kpiMatch && window.StreetWise) {
+      var keyMap = { subscribers: "subscribers", subscriber: "subscribers", views: "views", view: "views", "videos published": "videosPublished", videos: "videosPublished", revenue: "revenue28d" };
+      var key = keyMap[kpiMatch[1]];
+      var rawNum = parseFloat(kpiMatch[2].replace(/,/g, ""));
+      var value = /k$/.test(lower.match(/set (?:subscribers?|views?|videos? published|revenue)\s+([\d,.]+k?)/)[1]) ? rawNum * 1000 : rawNum;
+      if (key) {
+        window.StreetWise.setKPI(key, value);
+        if (window.VanguardAgentUI) window.VanguardAgentUI.render();
+        respond("Saved. " + kpiMatch[1] + " is now " + value + ".");
+      } else {
+        respond("I can track subscribers, views, videos published, or 28-day revenue. Say, for example, “set subscribers 1250”.");
+      }
       return;
     }
 

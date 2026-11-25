@@ -4,7 +4,10 @@ Voice-first, automated Jarvis that runs entirely in your browser.
 No build step, no external libraries, no web fonts, no server, no API key required.
 
 Plain HTML/CSS/JS: `index.html`, `jarvis.css`, `jarvis.js` (voice assistant core),
-`automation.js` (routines, timers, reminders, morning briefing).
+`automation.js` (routines, timers, reminders, morning briefing),
+`agents.js` (the 7 Street Wise Money bots) and `central-agent.js`
+(the Vanguard Coordinator — Central Agent — plus the Agents panel UI and
+the CEO Approval Queue).
 
 ## Run it
 
@@ -48,6 +51,60 @@ All asset paths are relative and `.nojekyll` is included, so GitHub Pages serves
 | `street wise mode` / `classic mode` | Switch personality (green / blue HUD) |
 | `voice off` / `voice on` | Spoken replies off / on |
 | `stop` | Interrupt |
+
+## 🎬 Street Wise Money bots
+
+Reporting chain: **Bots → Vanguard Coordinator (Central Agent) → Jarvis → Goldwing.**
+
+The 7 bots live in `agents.js`. Each one owns one stage of the pipeline
+(Idea → Script → Voiceover → Edit → Thumbnail → Approval → Scheduled → Published)
+and reports `{ done, next, blocked, needsApproval }` to the Central Agent
+(`central-agent.js`). The Central Agent deduplicates the reports, flags
+blockers and approvals, and hands one combined summary to Jarvis
+(`window.VanguardAgent.getJarvisBriefing()`). Jarvis speaks it in a
+briefing and shows it in the Agents panel.
+
+| Bot | Job | Stage |
+|---|---|---|
+| Trend Researcher | Finds trending money topics, reports the top 3 with a suggested angle | Idea |
+| Scriptwriter | Drafts scripts/outlines from an approved idea | Script |
+| Voiceover Producer | Tracks recording readiness | Voiceover |
+| Video Editor | Tracks edit status / cut progress | Edit |
+| Thumbnail & Title Designer | Proposes 3 titles + thumbnail concepts per video | Thumbnail |
+| Upload / SEO Manager | Prepares the upload checklist, SEO title, description, tags | Scheduled |
+| Analytics | Tracks KPIs Goldwing enters (subscribers, views, videos published, 28-day revenue) | Published |
+
+Seeded episodes (sample data): Episode 001, *Your First $1,000* (approved,
+ready to upload) and Episode 002, *5 Money Mistakes Keeping You Broke*
+(script stage). Cadence: 2 long videos a week (Tue & Fri, 6–12 min) plus
+3–5 Shorts.
+
+### Approval — the standing rule
+
+**Nothing uploads to YouTube without Goldwing's approval.** The Upload /
+SEO Manager only prepares a checklist and marks it "needs Goldwing
+approval". The CEO Approval Queue in the Agents panel (and Jarvis voice:
+`approvals`, `approve video episode 1`) is the only way an item clears —
+and approving it only clears it for *Goldwing* to publish in YouTube
+Studio. This dashboard never uploads, never schedules a publish, and has
+no YouTube connection.
+
+### Voice commands (Street Wise)
+
+| Say / type | What happens |
+|---|---|
+| `agents report` / `agent briefing` / `street wise status` | Central Agent's combined report from all 7 bots |
+| `show trend report` | Top 3 sample trends from the Trend Researcher |
+| `approvals` | What is waiting on Goldwing |
+| `approve video episode 1` / `approve episode 2` | Approve that item (Goldwing only) |
+| `set subscribers 1250` / `set views …` / `set revenue …` | Enter real channel KPIs for Analytics |
+
+### Honest limit
+
+The bots run in the browser while the page is open. They do **not** fetch
+live YouTube data, live trends, or live stats — trends are labelled sample
+starting points for Goldwing to check, and KPIs are whatever Goldwing
+enters. They do not upload, publish, or contact anyone.
 
 ## Automation — what runs without being asked
 
