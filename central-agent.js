@@ -216,14 +216,22 @@
   }
 
   function renderVideos() {
-    var list = $("video-list");
-    if (!list || !window.StreetWise) return;
-    list.innerHTML = "";
-    window.StreetWise.getVideos().forEach(function (v) {
-      var li = el("li");
-      li.appendChild(el("span", "Episode " + v.number + " — " + v.title + " (" + v.length + ")"));
-      li.appendChild(el("span", v.stage + (v.approved ? " · approved" : "") + " · seeded", "meta"));
-      list.appendChild(li);
+    var board = $("video-list");
+    if (!board || !window.StreetWise) return;
+    board.innerHTML = "";
+    var videos = window.StreetWise.getVideos();
+    window.StreetWise.STAGES.forEach(function (stage) {
+      var col = el("div", null, "pipeline-col");
+      col.appendChild(el("h3", stage));
+      var inStage = videos.filter(function (v) { return v.stage === stage; });
+      if (!inStage.length) { col.appendChild(el("p", "—", "muted")); }
+      inStage.forEach(function (v) {
+        var card = el("div", null, "pipeline-card");
+        card.appendChild(el("strong", "Episode " + v.number + " — " + v.title));
+        card.appendChild(el("span", v.length + (v.approved ? " · approved" : "") + " · " + (v.source === "seeded" ? "seeded sample" : "entered"), "meta"));
+        col.appendChild(card);
+      });
+      board.appendChild(col);
     });
   }
 

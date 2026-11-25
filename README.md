@@ -1,13 +1,43 @@
-# Jarvis v1 — Automated Voice Assistant
+# Jarvis — HUD Command Center
 
-Voice-first, automated Jarvis that runs entirely in your browser.
-No build step, no external libraries, no web fonts, no server, no API key required.
+Voice-first, automated Jarvis plus a full Vanguard command center, running
+entirely in your browser. No build step, no external libraries, no web
+fonts, no server, no API key required.
 
-Plain HTML/CSS/JS: `index.html`, `jarvis.css`, `jarvis.js` (voice assistant core),
-`automation.js` (routines, timers, reminders, morning briefing),
-`agents.js` (the 7 Street Wise Money bots) and `central-agent.js`
+Plain HTML/CSS/JS: `index.html`, `jarvis.css`, `jarvis.js` (voice assistant
+core), `automation.js` (routines, timers, reminders, morning briefing),
+`agents.js` (the 7 Street Wise Money bots), `central-agent.js`
 (the Vanguard Coordinator — Central Agent — plus the Agents panel UI and
-the CEO Approval Queue).
+the CEO Approval Queue), and `vanguard.js` (Vanguard Ops: Overview KPIs,
+contracts, Trading Lab simulation, tasks and activity).
+
+## HUD Command Center layout
+
+The page, top to bottom:
+
+1. **Jarvis HUD** — the glowing core. Tap it or say “Hey Jarvis” to talk.
+   Conversation log and typed commands sit beside the Automation panel.
+2. **Overview** — KPI cards: active pipeline (count + $/mo), won monthly
+   revenue vs the $15,000 cleaning target, win rate, open tasks, and paper
+   equity (simulation). Plus deadlines in the next 21 days.
+3. **Contracts pipeline** — Lead → Qualifying → Bid prep → Submitted →
+   Won / Lost, with search, stage filter, inline stage dropdowns, and an
+   add-opportunity form (also by voice).
+4. **Trading Lab** — simulated EUR/USD feed (start / pause, 1×/3×/8×),
+   paper trades at market with stop-loss / take-profit, live paper P&L,
+   paper balance from $10,000, win rate, and a position-size calculator.
+5. **Tasks & Agents board** — tasks with owner, due date and status,
+   plus an Activity log of everything that happened on the dashboard.
+6. **Street Wise Money — Agents** — the 7 bots, Central Agent summary,
+   video pipeline board (Idea → Published), CEO Approval Queue and
+   channel KPIs. See below.
+7. **Automation, Settings, Commands** — routines, timers, reminders,
+   notes, voice / wake-word / morning-briefing settings, and the full
+   command list.
+
+Jarvis can report on all of it by voice — say “briefing” for the full
+picture, or “contracts”, “trading”, “agents report”, “approvals”, or
+“street wise status” for one part.
 
 ## Run it
 
@@ -41,7 +71,7 @@ All asset paths are relative and `.nojekyll` is included, so GitHub Pages serves
 |---|---|
 | `help` | List of commands |
 | `what time is it` / `what date is it` | Time / date |
-| `briefing` | Time, notes, upcoming timers/reminders, routines |
+| `briefing` | Time, notes, timers, routines — plus Vanguard Ops and Street Wise summaries |
 | `set a timer for 5 minutes` | Timer that fires with a spoken alert |
 | `remind me in 10 minutes to stretch` | Reminder that fires with a spoken alert |
 | `take a note …` | Saves a note (localStorage) |
@@ -51,6 +81,20 @@ All asset paths are relative and `.nojekyll` is included, so GitHub Pages serves
 | `street wise mode` / `classic mode` | Switch personality (green / blue HUD) |
 | `voice off` / `voice on` | Spoken replies off / on |
 | `stop` | Interrupt |
+
+### Vanguard Ops voice commands
+
+| Say / type | What happens |
+|---|---|
+| `contracts` / `show pipeline` | Active pipeline, won revenue vs $15,000 target, win rate, open tasks, paper equity |
+| `add cleaning opportunity Navarre clinic $2500 due in 10 days` | Adds a contract as a Lead |
+| `move navarre to submitted` / `we won navarre` / `mark navarre lost` | Changes that contract's stage |
+| `start market` / `pause market` / `price` | Controls the simulated EUR/USD feed / reads the simulated price |
+| `buy 0.2 lots stop 15 target 30` / `sell 0.1 lots` | Opens a paper trade (simulation — no real order) |
+| `positions` / `close trade 1` / `close all` / `account` | Paper positions, balance, equity, win rate |
+| `position size 1% 20 pips` | Position-size calculator |
+| `assign Compliance to check SAM registration due in 3 days` / `open tasks` | Adds a task / lists open tasks |
+| `go to contracts` / `trading` / `agents` / `approvals` / `overview` / `activity` | Scrolls to that section |
 
 ## 🎬 Street Wise Money bots
 
@@ -105,6 +149,29 @@ The bots run in the browser while the page is open. They do **not** fetch
 live YouTube data, live trends, or live stats — trends are labelled sample
 starting points for Goldwing to check, and KPIs are whatever Goldwing
 enters. They do not upload, publish, or contact anyone.
+
+## Vanguard Ops — honest limits
+
+- **Contracts:** the 7 seeded contracts are sample data (labelled
+  sample in the UI). Add, edit and move your real opportunities and the
+  KPIs recompute from what you entered. Nothing is synced to a server.
+- **Trading Lab:** a simulation. The EUR/USD price is a random walk,
+  paper trades use a $10,000 paper balance, and stop-loss / take-profit
+  close paper trades automatically. There is no live price, no broker,
+  no real orders and no real money.
+- **Tasks / Activity:** local only, stored in this browser.
+
+## YouTube upload — not connected yet
+
+Nothing in this dashboard uploads to YouTube, and there is no YouTube
+connection in this build. Goldwing chose “Connect YouTube so Jarvis can
+upload after approval” — the planned route is SolMarrow, which uploads
+via the official YouTube Data API with the @streetwisemoney Google
+account (no Google Cloud project needed). Until that is connected, the
+approval rule stands and uploads stay manual in YouTube Studio: Jarvis
+prepares, Goldwing approves, Goldwing publishes. No finished video file
+exists yet — Episodes 001/002 are ideas/scripts, not MP4s — so there is
+nothing to upload today even with a connection.
 
 ## Automation — what runs without being asked
 

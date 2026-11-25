@@ -3,19 +3,28 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Jarvis — Automated Voice Assistant</title>
-  <meta name="description" content="Jarvis v1: a voice-first, automated assistant that runs in your browser. Timers, reminders, notes, briefings and daily routines — no server, no key required.">
+  <title>Jarvis — HUD Command Center</title>
+  <meta name="description" content="Jarvis HUD Command Center: a voice-first, automated assistant plus Vanguard Ops — contracts, Trading Lab simulation, tasks and Street Wise Money agents. Runs in your browser, no server, no key required.">
   <link rel="stylesheet" href="jarvis.css">
 </head>
 <body data-state="idle" data-personality="classic">
   <div class="app">
     <header>
       <div>
-        <h1>JARVIS <span>v1</span></h1>
-        <p>Voice-first · automated · runs in your browser</p>
+        <h1>JARVIS <span>HUD Command Center</span></h1>
+        <p>Voice-first · automated · Vanguard Ops · runs in your browser</p>
       </div>
       <p class="personality">Personality: <span id="personality-label">Classic</span></p>
     </header>
+    <nav class="topnav" aria-label="Sections">
+      <a href="#overview">Overview</a>
+      <a href="#contracts">Contracts</a>
+      <a href="#trading">Trading Lab</a>
+      <a href="#tasks">Tasks</a>
+      <a href="#streetwise">Street Wise</a>
+      <a href="#streetwise">Agents</a>
+      <a href="#automation">Automation</a>
+    </nav>
 
     <main>
       <!-- HUD core: tap to talk -->
@@ -49,7 +58,7 @@
         </section>
 
         <!-- Automation -->
-        <section class="panel" aria-label="Automation">
+        <section class="panel" id="automation" aria-label="Automation">
           <h2>Automation</h2>
           <p>These run on their own <strong>while this page is open</strong>. Closing the tab pauses them — see the README for the GitHub Actions option.</p>
 
@@ -70,17 +79,112 @@
         </section>
       </div>
 
+      <!-- Vanguard Ops: Overview -->
+      <section class="panel" id="overview" style="margin-top: 1rem;" aria-label="Overview">
+        <h2>Overview — Vanguard Ops</h2>
+        <p>Sample / entered data only — no live data is fetched. Won revenue is summed from the seeded sample contracts below.</p>
+        <div class="kpi-grid">
+          <div class="kpi-card"><span class="kpi-label">Active pipeline</span><strong id="kpi-pipeline">—</strong></div>
+          <div class="kpi-card"><span class="kpi-label">Won monthly revenue vs $15,000 target</span><strong id="kpi-revenue">—</strong></div>
+          <div class="kpi-card"><span class="kpi-label">Win rate</span><strong id="kpi-winrate">—</strong></div>
+          <div class="kpi-card"><span class="kpi-label">Open tasks</span><strong id="kpi-tasks">—</strong></div>
+          <div class="kpi-card"><span class="kpi-label">Paper equity (simulation)</span><strong id="kpi-equity">—</strong></div>
+        </div>
+        <h2>Upcoming deadlines (21 days)</h2>
+        <ul class="clean" id="kpi-deadlines"></ul>
+      </section>
+
+      <!-- Vanguard Ops: Contracts -->
+      <section class="panel" id="contracts" style="margin-top: 1rem;" aria-label="Contracts">
+        <h2>Contracts pipeline</h2>
+        <p>Lead → Qualifying → Bid prep → Submitted → Won / Lost. Change a stage with the dropdown — Jarvis hears about it in the next briefing. Sample contracts are labelled sample.</p>
+        <div class="chat-row">
+          <input type="text" id="contract-search" placeholder="Search contracts…" aria-label="Search contracts">
+          <select id="contract-filter" aria-label="Filter by stage">
+            <option value="all">All stages</option>
+            <option>Lead</option><option>Qualifying</option><option>Bid prep</option>
+            <option>Submitted</option><option>Won</option><option>Lost</option>
+          </select>
+        </div>
+        <ul class="clean" id="contract-list"></ul>
+        <form class="chat-row" id="contract-form" style="flex-wrap: wrap;">
+          <input type="text" id="contract-client" placeholder="Client / agency" aria-label="Client" required>
+          <select id="contract-division" aria-label="Division">
+            <option>Cleaning</option><option>Courier</option><option>Other</option>
+          </select>
+          <input type="number" id="contract-value" placeholder="Est. $/month" aria-label="Estimated monthly value" min="0">
+          <select id="contract-stage" aria-label="Stage">
+            <option>Lead</option><option>Qualifying</option><option>Bid prep</option><option>Submitted</option><option>Won</option><option>Lost</option>
+          </select>
+          <input type="date" id="contract-due" aria-label="Due date">
+          <button type="submit">Add opportunity</button>
+        </form>
+        <p>Or by voice: “add cleaning opportunity Navarre clinic $2500 due in 10 days”.</p>
+      </section>
+
+      <!-- Vanguard Ops: Trading Lab (simulation) -->
+      <section class="panel" id="trading" style="margin-top: 1rem;" aria-label="Trading Lab">
+        <h2>Trading Lab — simulation</h2>
+        <p><strong>Simulated EUR/USD, not live data. Paper trades only — no broker, no real orders, no real money.</strong> Paper balance starts at $10,000. 1 pip = $10 per lot.</p>
+        <p class="trade-price"><span id="trade-price">1.0850</span> <span class="muted" id="trade-change">— (simulated)</span></p>
+        <p class="muted" id="trade-status">Market paused — simulation</p>
+        <div class="controls" style="justify-content: flex-start;">
+          <button id="btn-market-start" type="button">▶ Start market</button>
+          <button id="btn-market-pause" type="button">❚❚ Pause market</button>
+          <select id="trade-speed" aria-label="Market speed">
+            <option value="1">1× speed</option><option value="3">3× speed</option><option value="8">8× speed</option>
+          </select>
+        </div>
+        <div class="kpi-grid" style="margin-top: 0.75rem;">
+          <div class="kpi-card"><span class="kpi-label">Paper balance</span><strong id="trade-balance">—</strong></div>
+          <div class="kpi-card"><span class="kpi-label">Paper equity</span><strong id="trade-equity">—</strong></div>
+          <div class="kpi-card"><span class="kpi-label">Win rate (closed paper trades)</span><strong id="trade-winrate">—</strong></div>
+        </div>
+        <form class="chat-row" id="trade-form" style="flex-wrap: wrap;" onsubmit="return false;">
+          <input type="number" id="trade-lots" value="0.2" step="0.1" min="0.01" aria-label="Lots">
+          <input type="number" id="trade-stop" value="15" aria-label="Stop loss in pips" placeholder="Stop (pips)">
+          <input type="number" id="trade-target" value="30" aria-label="Take profit in pips" placeholder="Target (pips)">
+          <button id="btn-buy" type="button">Buy</button>
+          <button id="btn-sell" type="button">Sell</button>
+        </form>
+        <h2>Positions</h2>
+        <ul class="clean" id="positions-list"></ul>
+        <h2>Position-size calculator</h2>
+        <div class="chat-row" style="flex-wrap: wrap;">
+          <input type="number" id="calc-risk" value="1" step="0.5" aria-label="Risk percent">
+          <input type="number" id="calc-stop" value="20" aria-label="Stop in pips">
+          <button id="btn-calc" type="button">Calculate</button>
+          <span id="calc-result" class="muted"></span>
+        </div>
+        <p>Or by voice: “buy 0.2 lots stop 15 target 30”, “price”, “positions”, “close trade 1”, “position size 1% 20 pips”.</p>
+      </section>
+
+      <!-- Vanguard Ops: Tasks & Activity -->
+      <section class="panel" id="tasks" style="margin-top: 1rem;" aria-label="Tasks and activity">
+        <h2>Tasks &amp; Agents board</h2>
+        <ul class="clean" id="task-list"></ul>
+        <form class="chat-row" id="task-form" style="flex-wrap: wrap;">
+          <input type="text" id="task-title" placeholder="Task, e.g. Check SAM registration" aria-label="Task title" required>
+          <input type="text" id="task-owner" placeholder="Owner" aria-label="Owner">
+          <input type="date" id="task-due" aria-label="Due date">
+          <button type="submit">Add task</button>
+        </form>
+        <p>Or by voice: “assign Compliance to check SAM registration due in 3 days”.</p>
+        <h2>Activity</h2>
+        <ul class="clean" id="ops-activity-list"></ul>
+      </section>
+
       <!-- Street Wise Money agents -->
-      <section class="panel" style="margin-top: 1rem;" aria-label="Street Wise Money agents">
+      <section class="panel" id="streetwise" style="margin-top: 1rem;" aria-label="Street Wise Money agents">
         <h2>Street Wise Money — Agents</h2>
         <p>Reporting chain: <strong>Bots → Vanguard Coordinator (Central Agent) → Jarvis → Goldwing</strong>. Each bot reports to the Coordinator, the Coordinator reports to Jarvis, and Jarvis reports to you. <strong>Nothing uploads to YouTube without your approval.</strong></p>
 
         <h2>Central Agent summary</h2>
         <div id="central-summary"><p>Loading agent reports…</p></div>
 
-        <h2>Video pipeline</h2>
+        <h2>Video pipeline board</h2>
         <p>Pipeline: Idea → Script → Voiceover → Edit → Thumbnail → Approval → Scheduled → Published. Seeded episodes below are sample data.</p>
-        <ul class="clean" id="video-list"></ul>
+        <div class="pipeline-board" id="video-list"></div>
 
         <h2>All 7 bots</h2>
         <div class="agent-grid" id="agent-cards"></div>
@@ -137,17 +241,27 @@
           <li><code>approvals</code> — what is waiting on Goldwing</li>
           <li><code>approve video episode 1</code> / <code>approve episode 2</code></li>
           <li><code>set subscribers 1250</code> / <code>set views …</code> / <code>set revenue …</code></li>
+          <li><code>contracts</code> / <code>show pipeline</code> — Vanguard Ops summary</li>
+          <li><code>add cleaning opportunity Navarre clinic $2500 due in 10 days</code></li>
+          <li><code>move navarre to submitted</code> / <code>we won navarre</code> / <code>mark navarre lost</code></li>
+          <li><code>start market</code> / <code>pause market</code> / <code>price</code></li>
+          <li><code>buy 0.2 lots stop 15 target 30</code> / <code>sell 0.1 lots</code></li>
+          <li><code>positions</code> / <code>close trade 1</code> / <code>close all</code> / <code>account</code></li>
+          <li><code>position size 1% 20 pips</code></li>
+          <li><code>assign Compliance to check SAM registration due in 3 days</code> / <code>open tasks</code></li>
+          <li><code>go to contracts</code> / <code>trading</code> / <code>agents</code> / <code>approvals</code> / <code>overview</code> / <code>activity</code></li>
         </ul>
       </section>
     </main>
 
     <footer>
-      Jarvis v1 · No server, no key required · Voice needs a microphone and works best in Chrome or Edge, on HTTPS or localhost.
+      Jarvis — HUD Command Center · No server, no key required · Voice needs a microphone and works best in Chrome or Edge, on HTTPS or localhost. · Contracts &amp; trading figures are sample / entered data; Trading Lab is a simulation, not live data and not real trading.
     </footer>
   </div>
 
   <script src="agents.js"></script>
   <script src="central-agent.js"></script>
+  <script src="vanguard.js"></script>
   <script src="jarvis.js"></script>
   <script src="automation.js"></script>
 </body>

@@ -270,6 +270,12 @@
       lines.push("Street Wise: " + sw.summary);
       if (sw.approvalsNeeded.length) lines.push(sw.approvalsNeeded.length + " approval item" + (sw.approvalsNeeded.length === 1 ? " is" : "s are") + " waiting on you.");
     }
+    // Vanguard Ops: contracts, trading (simulation) and open tasks.
+    if (window.VanguardOps) {
+      lines.push(window.VanguardOps.summaryText());
+      var opsTasks = window.VanguardOps.getTasks().filter(function (t) { return t.status !== "Done"; });
+      if (opsTasks.length) lines.push("Open tasks: " + opsTasks.slice(0, 3).map(function (t) { return t.title + " (" + t.owner + ")"; }).join("; ") + ".");
+    }
     return lines.join(" ");
   }
 
@@ -491,6 +497,128 @@
         respond("I can track subscribers, views, videos published, or 28-day revenue. Say, for example, “set subscribers 1250”.");
       }
       return;
+    }
+
+    // ----- Vanguard Ops: contracts, Trading Lab, tasks -----
+    // Sample / entered data only; trading is a simulation, never real orders.
+    if (window.VanguardOps) {
+      // "go to contracts / trading / agents / approvals / overview / activity"
+      var goMatch = lower.match(/go to (contracts?|trading|agents?|approvals?|overview|activity|street wise)/);
+      if (goMatch) {
+        var targets = { contract: "contracts", contracts: "contracts", trading: "trading", agent: "streetwise", agents: "streetwise", approval: "streetwise", approvals: "streetwise", overview: "overview", activity: "tasks", "street wise": "streetwise" };
+        var targetId = targets[goMatch[1]] || "overview";
+        var targetEl = document.getElementById(targetId);
+        if (targetEl && targetEl.scrollIntoView) targetEl.scrollIntoView({ behavior: "smooth" });
+        respond("Going to " + goMatch[1] + ".");
+        return;
+      }
+      // Contracts summary: "contracts", "show pipeline", "pipeline"
+      if (/contracts|show pipeline|^pipeline$/.test(lower)) {
+        respond(window.VanguardOps.summaryText());
+        return;
+      }
+      // Add opportunity: "add cleaning opportunity Navarre clinic $2500 due in 10 days"
+      if (/add .*opportunity|add (cleaning|courier)/.test(lower)) {
+        var valueMatch = text.match(/\$?\s?([\d,]+(?:\.\d+)?)\s?k?(?:\/month|\/mo)?/i);
+        var value = 0;
+        if (valueMatch) { value = parseFloat(valueMatch[1].replace(/,/g, "")); if (/k\//.test(lower) || /\dk/.test(lower)) value *= 1000; }
+        var clientText = text.replace(/add\s+(cleaning|courier)?\s*opportunity\s*/i, "").replace(/\$?\s?[\d,]+(?:\.\d+)?\s?k?(?:\/month|\/mo)?/i, "").replace(/due.*$/i, "").trim();
+        var dueDays = null;
+        var dueMatch = lower.match(/due in (\d+) days?/);
+        if (dueMatch) { var d = new Date(); d.setDate(d.getDate() + parseInt(dueMatch[1], 10)); dueDays = d.toISOString().slice(0, 10); }
+        var dueDate = lower.match(/due (\d{4}-\d{2}-\d{2})/);
+        if (dueDate) dueDays = dueDate[1];
+        var division = /courier/.test(lower) ? "Courier" : "Cleaning";
+        var added = window.VanguardOps.addContract({ client: clientText || "Untitled opportunity", division: division, value: value, stage: "Lead", due: dueDays || "" });
+        respond("Added " + added.client + " as a Lead, " + division + ", $" + added.value + " a month" + (dueDays ? ", due " + dueDays : "") + ".");
+        return;
+      }
+      // Move / win / lose: "move navarre to submitted", "we won navarre", "mark navarre lost"
+      var moveMatch = lower.match(/move (.+?) to (lead|qualifying|bid prep|submitted|won|lost)/);
+      if (moveMatch) {
+        var stageName = moveMatch[2] === "bid prep" ? "Bid prep" : moveMatch[2].charAt(0).toUpperCase() + moveMatch[2].slice(1);
+        var moved = window.VanguardOps.moveContract(moveMatch[1], stageName);
+        respond(moved ? "Moved " + moved.client + " to " + stageName + "." : "I could not find a contract matching that. Say “contracts” to hear the list.");
+        return;
+      }
+      if (/we won|mark .* won|won /.test(lower)) {
+        var wonRef = lower.replace(/we won|mark|won/g, "").trim();
+        var won = window.VanguardOps.moveContract(wonRef, "Won");
+        respond(won ? "Congratulations — " + won.client + " is marked Won." : "I could not find a contract matching that.");
+        return;
+      }
+      if (/lost|mark .* lost/.test(lower) && /mark|lost/.test(lower)) {
+        var lostRef = lower.replace(/mark|lost/g, "").trim();
+        var lost = window.VanguardOps.moveContract(lostRef, "Lost");
+        if (lost) { respond(lost.client + " is marked Lost."); return; }
+      }
+      // Trading: start / pause market
+      if (/start market/.test(lower)) { window.VanguardOps.startMarket(); respond("Simulated market started. This is a simulation, not live data."); return; }
+      if (/pause market|stop market/.test(lower)) { window.VanguardOps.pauseMarket(); respond("Simulated market paused."); return; }
+      if (/^price$|eur.?usd price|what is the price/.test(lower)) {
+        var ts = window.VanguardOps.getTradingSummary();
+        respond("Simulated EUR/USD is " + ts.price.toFixed(4) + ". Paper equity is $" + Math.round(ts.equity) + ". This is a simulation, not a live price.");
+        return;
+      }
+      // Buy / sell: "buy 0.2 lots stop 15 target 30"
+      var tradeMatch = lower.match(/^(buy|sell)\s+([\d.]+)?\s*lots?(?:\s+stop\s+(\d+))?(?:\s+target\s+(\d+))?/);
+      if (tradeMatch) {
+        var trade = window.VanguardOps.openTrade(tradeMatch[1], Number(tradeMatch[2] || 0.1), Number(tradeMatch[3] || 0), Number(tradeMatch[4] || 0));
+        respond("Paper trade opened: " + trade.side + " " + trade.lots + " lots at " + trade.entry.toFixed(4) + ". Simulation only — no real order placed.");
+        return;
+      }
+      // Positions / account
+      if (/positions|open trades/.test(lower)) {
+        var tsum = window.VanguardOps.getTradingSummary();
+        respond(tsum.openCount ? "You have " + tsum.openCount + " open paper position(s). Paper equity is $" + Math.round(tsum.equity) + ". Simulation only." : "No open paper positions. Paper equity is $" + Math.round(tsum.equity) + ". Simulation only.");
+        return;
+      }
+      if (/^account$|paper account/.test(lower)) {
+        var asum = window.VanguardOps.getTradingSummary();
+        respond("Paper account (simulation): balance $" + Math.round(asum.balance) + ", equity $" + Math.round(asum.equity) + ", " + asum.closedCount + " closed trades, win rate " + asum.winRate + " percent. No real money.");
+        return;
+      }
+      // Close trade
+      if (/close all/.test(lower)) {
+        var n = window.VanguardOps.closeAllTrades();
+        respond(n ? "Closed " + n + " paper trade(s)." : "No open paper trades to close.");
+        return;
+      }
+      var closeMatch = lower.match(/close trade (\d+)/);
+      if (closeMatch) {
+        var closed = window.VanguardOps.closeTrade(closeMatch[1], "manual");
+        respond(closed ? "Closed paper trade " + closed.id + ", P&L $" + Math.round(closed.pnl) + " (simulation)." : "I could not find open paper trade " + closeMatch[1] + ".");
+        return;
+      }
+      // Position size: "position size 1% 20 pips"
+      var sizeMatch = lower.match(/position size\s+([\d.]+)%?\s+(\d+)\s*pips?/);
+      if (sizeMatch) {
+        var sized = window.VanguardOps.positionSize(Number(sizeMatch[1]), Number(sizeMatch[2]));
+        respond(sized ? "Risking " + sizeMatch[1] + "% with a " + sizeMatch[2] + "-pip stop risks $" + sized.riskDollars + ", which is " + sized.lots + " lots. Simulation only." : "Tell me the stop in pips, for example: “position size 1% 20 pips”.");
+        return;
+      }
+      // Tasks: "assign Compliance to check SAM registration due in 3 days", "add task …", "open tasks"
+      if (/assign (.+?) to (.+)/.test(lower)) {
+        var assignMatch = text.match(/assign\s+(.+?)\s+to\s+(.+)/i);
+        var taskDue = null;
+        var taskDueMatch = lower.match(/due in (\d+) days?/);
+        if (taskDueMatch) { var td = new Date(); td.setDate(td.getDate() + parseInt(taskDueMatch[1], 10)); taskDue = td.toISOString().slice(0, 10); }
+        var taskTitle = assignMatch[2].replace(/due in \d+ days?/i, "").trim();
+        window.VanguardOps.addTask({ title: taskTitle, owner: assignMatch[1].trim(), due: taskDue || "" });
+        respond("Assigned to " + assignMatch[1].trim() + ": " + taskTitle + (taskDue ? ", due " + taskDue : "") + ".");
+        return;
+      }
+      if (/add task/.test(lower)) {
+        var taskText = text.replace(/add task\s*/i, "").trim();
+        if (taskText) { window.VanguardOps.addTask({ title: taskText, owner: "Goldwing", due: "" }); respond("Task added: " + taskText + "."); }
+        else { respond("What task should I add?"); }
+        return;
+      }
+      if (/open tasks|^tasks$/.test(lower)) {
+        var openTasks = window.VanguardOps.getTasks().filter(function (t) { return t.status !== "Done"; });
+        respond(openTasks.length ? "Open tasks: " + openTasks.map(function (t) { return t.title + " (" + t.owner + ")"; }).join("; ") + "." : "No open tasks.");
+        return;
+      }
     }
 
     // Joke / small talk.
