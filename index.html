@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Jarvis — Automated Voice Assistant</title>
+  <meta name="description" content="Jarvis v1: a voice-first, automated assistant that runs in your browser. Timers, reminders, notes, briefings and daily routines — no server, no key required.">
+  <link rel="stylesheet" href="jarvis.css">
+</head>
+<body data-state="idle" data-personality="classic">
+  <div class="app">
+    <header>
+      <div>
+        <h1>JARVIS <span>v1</span></h1>
+        <p>Voice-first · automated · runs in your browser</p>
+      </div>
+      <p class="personality">Personality: <span id="personality-label">Classic</span></p>
+    </header>
+
+    <main>
+      <!-- HUD core: tap to talk -->
+      <section class="hud" aria-label="Jarvis">
+        <div class="core-wrap">
+          <div class="ring" aria-hidden="true"></div>
+          <div class="ring ring-2" aria-hidden="true"></div>
+          <div class="ring ring-3" aria-hidden="true"></div>
+          <button class="core" id="core" type="button" aria-label="Tap to talk to Jarvis">JARVIS</button>
+        </div>
+        <p class="status" id="status" role="status">Tap the core or say “Hey Jarvis” to talk.</p>
+        <p class="status" id="voice-note"></p>
+        <div class="controls">
+          <button id="btn-listen" type="button">🎙 Listen</button>
+          <button id="btn-stop" type="button">■ Stop</button>
+          <button id="btn-briefing" type="button">☀ Briefing</button>
+          <button id="btn-personality" type="button">Switch personality</button>
+        </div>
+      </section>
+
+      <div class="grid">
+        <!-- Conversation -->
+        <section class="panel" aria-label="Conversation">
+          <h2>Conversation</h2>
+          <p>Type a command, or tap the core and speak. Say <strong>“help”</strong> for what I can do.</p>
+          <form class="chat-row" id="chat-form">
+            <input type="text" id="chat-input" placeholder="Say or type: set a timer for 5 minutes…" autocomplete="off" aria-label="Command">
+            <button type="submit">Send</button>
+          </form>
+          <ul class="log" id="log" aria-live="polite"></ul>
+        </section>
+
+        <!-- Automation -->
+        <section class="panel" aria-label="Automation">
+          <h2>Automation</h2>
+          <p>These run on their own <strong>while this page is open</strong>. Closing the tab pauses them — see the README for the GitHub Actions option.</p>
+
+          <h2>Routines</h2>
+          <ul class="clean" id="routine-list"></ul>
+          <form class="chat-row" id="routine-form">
+            <input type="text" id="routine-label" placeholder="Routine name, e.g. Morning briefing" aria-label="Routine name">
+            <input type="time" id="routine-time" value="07:00" aria-label="Routine time">
+            <button type="submit">Add</button>
+          </form>
+          <p>Or by voice: “automate a morning briefing at 7am”.</p>
+
+          <h2>Timers &amp; reminders</h2>
+          <ul class="clean" id="due-list"></ul>
+
+          <h2>Notes</h2>
+          <ul class="clean" id="note-list"></ul>
+        </section>
+      </div>
+
+      <!-- Settings -->
+      <section class="panel settings" style="margin-top: 1rem;" aria-label="Settings">
+        <h2>Settings</h2>
+        <label><input type="checkbox" id="toggle-voice" checked> Voice replies on</label>
+        <label><input type="checkbox" id="toggle-wake" checked> Wake word — listen for “Hey Jarvis”</label>
+        <label><input type="checkbox" id="toggle-morning" checked> Automatic morning briefing at
+          <input type="time" id="morning-time" value="07:00" aria-label="Morning briefing time"></label>
+        <label><input type="checkbox" id="toggle-hourly"> Hourly time check</label>
+        <p>Settings, notes, timers and routines are stored only in this browser (localStorage). Nothing is sent to a server.</p>
+      </section>
+
+      <!-- Commands -->
+      <section class="panel" style="margin-top: 1rem;" aria-label="Commands">
+        <h2>Commands</h2>
+        <ul class="commands">
+          <li><code>help</code> — what Jarvis can do</li>
+          <li><code>what time is it</code> / <code>what date is it</code></li>
+          <li><code>briefing</code> — time, notes, timers, routines</li>
+          <li><code>set a timer for 5 minutes</code></li>
+          <li><code>remind me in 10 minutes to stretch</code></li>
+          <li><code>take a note …</code> / <code>show notes</code></li>
+          <li><code>automate a morning briefing at 7am</code></li>
+          <li><code>tell me a joke</code></li>
+          <li><code>voice off</code> / <code>voice on</code></li>
+          <li><code>street wise mode</code> / <code>classic mode</code></li>
+          <li><code>stop</code> — interrupt Jarvis</li>
+        </ul>
+      </section>
+    </main>
+
+    <footer>
+      Jarvis v1 · No server, no key required · Voice needs a microphone and works best in Chrome or Edge, on HTTPS or localhost.
+    </footer>
+  </div>
+
+  <script src="jarvis.js"></script>
+  <script src="automation.js"></script>
+</body>
+</html>
