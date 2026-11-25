@@ -15,8 +15,12 @@
  *
  * All data is seeded/sample or entered by Goldwing, stored only in
  * this browser (localStorage). There is NO live YouTube data here:
- * trends are labelled sample, KPIs start unset until Goldwing enters
- * them, and episode data is the seeded Episodes 001 and 002.
+ * trends are labelled sample, and episode data is the seeded
+ * Episode 002. EXCEPTION: Episode 001 is real — it is already
+ * published on @streetwisemoney, verified 2026-11-25 (published
+ * ~2026-11-23, 2:11 long, 67 views, 6 likes, 0 comments, channel:
+ * 4 subscribers, 1 video). Its KPIs below are those real, checked
+ * numbers, not invented stats. Update them by hand when they change.
  *
  * Reporting chain: each bot's report() feeds the Central Agent
  * (central-agent.js), which feeds Jarvis, which reports to Goldwing.
@@ -49,14 +53,20 @@
       {
         id: "ep001", number: 1,
         title: "Your First $1,000",
+        fullTitle: "Your First $1,000: The Money Move That Can Change Your Life",
         topic: "Saving your first $1,000",
         pillar: "Saving",
-        stage: "Approval",
+        stage: "Published",
         approved: true,
         targetPublish: "Friday",
-        length: "6-12 min",
-        source: "seeded",
-        notes: "Approved, ready to upload. Upload itself still needs Goldwing's final approval."
+        publishedAt: "2026-11-23",
+        length: "2:11",
+        url: "https://youtu.be/dh9pwq_xGhI",
+        views: 67,
+        likes: 6,
+        comments: 0,
+        source: "live",
+        notes: "Published on @streetwisemoney, verified 2026-11-25: 67 views, 6 likes, 0 comments. Channel then: 4 subscribers, 1 video."
       },
       {
         id: "ep002", number: 2,
@@ -85,12 +95,49 @@
 
   function getVideos() {
     var videos = loadJSON(LS_VIDEOS, null);
-    if (!videos) { videos = seedVideos(); saveJSON(LS_VIDEOS, videos); }
+    if (!videos) { videos = seedVideos(); saveJSON(LS_VIDEOS, videos); return videos; }
+    // Migration 2026-11-25: Episode 001 was seeded at "Approval" in
+    // older browsers. It is actually published — update any stored
+    // copy in place so existing home-screen installs correct themselves.
+    var i, changed = false;
+    for (i = 0; i < videos.length; i++) {
+      if (videos[i].id === "ep001" && videos[i].stage !== "Published") {
+        var fresh = seedVideos()[0];
+        videos[i].stage = "Published";
+        videos[i].publishedAt = fresh.publishedAt;
+        videos[i].length = fresh.length;
+        videos[i].url = fresh.url;
+        videos[i].views = fresh.views;
+        videos[i].likes = fresh.likes;
+        videos[i].comments = fresh.comments;
+        videos[i].fullTitle = fresh.fullTitle;
+        videos[i].source = "live";
+        videos[i].notes = fresh.notes;
+        changed = true;
+      }
+    }
+    if (changed) saveJSON(LS_VIDEOS, videos);
     return videos;
   }
   function saveVideos(videos) { saveJSON(LS_VIDEOS, videos); }
 
-  function getKPIs() { return loadJSON(LS_KPIS, { subscribers: null, views: null, videosPublished: null, revenue28d: null, updatedAt: null }); }
+  function getKPIs() {
+    var kpis = loadJSON(LS_KPIS, null);
+    if (!kpis) {
+      // Real channel numbers, verified 2026-11-25 on @streetwisemoney.
+      kpis = { subscribers: 4, views: 67, videosPublished: 1, revenue28d: null, updatedAt: "2026-11-25", source: "verified @streetwisemoney, checked 2026-11-25" };
+      saveJSON(LS_KPIS, kpis);
+      return kpis;
+    }
+    // Migration 2026-11-25: older browsers stored null KPIs. Fill in
+    // the verified Episode 001 / channel numbers once.
+    if (kpis.subscribers === null && kpis.views === null) {
+      kpis.subscribers = 4; kpis.views = 67; kpis.videosPublished = 1;
+      kpis.updatedAt = "2026-11-25"; kpis.source = "verified @streetwisemoney, checked 2026-11-25";
+      saveJSON(LS_KPIS, kpis);
+    }
+    return kpis;
+  }
   function setKPI(key, value) {
     var kpis = getKPIs();
     kpis[key] = value;
@@ -246,10 +293,10 @@
         var ep001 = findVideo("ep001");
         return {
           bot: "thumbnail", name: "Thumbnail & Title Designer",
-          done: ep001 ? "3 title options proposed for Episode 001: “Your First $1,000 (Start Today)”, “Save $1,000 Fast — Even on a Small Income”, “The First $1,000 Is the Hardest”. Thumbnail concepts: bold number, before/after wallet, checklist." : "No titles proposed yet.",
+          done: ep001 ? "Episode 001 is published with the title “Your First $1,000: The Money Move That Can Change Your Life”." : "No titles proposed yet.",
           next: "Propose titles and thumbnails for Episode 002 once its edit is done.",
           blocked: null,
-          needsApproval: true,
+          needsApproval: false,
           timestamp: nowISO()
         };
       }
@@ -266,10 +313,10 @@
         var ep001 = findVideo("ep001");
         return {
           bot: "upload", name: "Upload / SEO Manager",
-          done: ep001 ? "Episode 001 upload checklist and SEO pack ready (title, description, tags). Status: needs Goldwing approval — NOT uploaded." : "No video ready to upload.",
-          next: "Wait for Goldwing to approve the Episode 001 upload, then hand it to Goldwing to publish in YouTube Studio.",
-          blocked: "Upload is blocked by design until Goldwing approves it. Nothing uploads automatically.",
-          needsApproval: true,
+          done: ep001 ? "Episode 001 is already published on @streetwisemoney (" + ep001.url + ", " + (ep001.views === undefined ? "views not recorded" : ep001.views + " views") + "). No upload waiting for it." : "No video ready to upload.",
+          next: "Prepare Episode 002 for upload once its script is approved — and only with Goldwing's approval, as always.",
+          blocked: null,
+          needsApproval: false,
           timestamp: nowISO()
         };
       }

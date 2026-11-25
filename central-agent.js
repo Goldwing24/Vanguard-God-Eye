@@ -37,8 +37,8 @@
       {
         id: "ap-upload-ep001", type: "upload",
         title: "Upload Episode 001 — “Your First $1,000”",
-        detail: "Episode 001 is approved and ready, but the upload itself still needs Goldwing's final approval. Jarvis will not upload it.",
-        status: "pending", decidedAt: null
+        detail: "Published on @streetwisemoney 2026-11-23 — https://youtu.be/dh9pwq_xGhI — 67 views, 6 likes, 0 comments (checked 2026-11-25). No longer waiting.",
+        status: "approved", decidedAt: "2026-11-25"
       },
       {
         id: "ap-script-ep002", type: "script",
@@ -57,7 +57,18 @@
 
   function getApprovals() {
     var items = loadJSON(LS_APPROVALS, null);
-    if (!items) { items = seedApprovals(); saveJSON(LS_APPROVALS, items); }
+    if (!items) { items = seedApprovals(); saveJSON(LS_APPROVALS, items); return items; }
+    // Migration 2026-11-25: Episode 001 is published, so a stored
+    // pending upload approval for it is out of date — mark it approved.
+    var changed = false;
+    items.forEach(function (a) {
+      if (a.id === "ap-upload-ep001" && a.status === "pending") {
+        a.status = "approved"; a.decidedAt = "2026-11-25";
+        a.detail = "Published on @streetwisemoney 2026-11-23 — https://youtu.be/dh9pwq_xGhI — 67 views, 6 likes, 0 comments (checked 2026-11-25). No longer waiting.";
+        changed = true;
+      }
+    });
+    if (changed) saveJSON(LS_APPROVALS, items);
     return items;
   }
   function saveApprovals(items) { saveJSON(LS_APPROVALS, items); }
@@ -228,7 +239,15 @@
       inStage.forEach(function (v) {
         var card = el("div", null, "pipeline-card");
         card.appendChild(el("strong", "Episode " + v.number + " — " + v.title));
-        card.appendChild(el("span", v.length + (v.approved ? " · approved" : "") + " · " + (v.source === "seeded" ? "seeded sample" : "entered"), "meta"));
+        var meta = v.length + (v.approved ? " · approved" : "") + " · " + (v.source === "live" ? "live on @streetwisemoney" : v.source === "seeded" ? "seeded sample" : "entered");
+        if (v.publishedAt) meta += " · published " + v.publishedAt;
+        if (v.views !== undefined && v.views !== null) meta += " · " + v.views + " views";
+        card.appendChild(el("span", meta, "meta"));
+        if (v.url) {
+          var link = el("a", "Watch on YouTube", null);
+          link.href = v.url; link.target = "_blank"; link.rel = "noopener";
+          card.appendChild(link);
+        }
         col.appendChild(card);
       });
       board.appendChild(col);
@@ -302,7 +321,7 @@
       list.appendChild(li);
     });
     var note = $("kpi-note");
-    if (note) note.textContent = "Sample data only — no live YouTube stats. Enter real numbers and Analytics will track them.";
+    if (note) note.textContent = "Real numbers from @streetwisemoney, checked 2026-11-25 — 4 subscribers, 67 views, 1 video published. No live YouTube connection, so update these by hand when they change.";
   }
 
   function renderActivity() {

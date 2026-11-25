@@ -118,10 +118,12 @@ briefing and shows it in the Agents panel.
 | Upload / SEO Manager | Prepares the upload checklist, SEO title, description, tags | Scheduled |
 | Analytics | Tracks KPIs Goldwing enters (subscribers, views, videos published, 28-day revenue) | Published |
 
-Seeded episodes (sample data): Episode 001, *Your First $1,000* (approved,
-ready to upload) and Episode 002, *5 Money Mistakes Keeping You Broke*
-(script stage). Cadence: 2 long videos a week (Tue & Fri, 6–12 min) plus
-3–5 Shorts.
+Episodes: Episode 001, *Your First $1,000* — **published** on
+@streetwisemoney, 2026-11-23, https://youtu.be/dh9pwq_xGhI (2:11, 67 views,
+6 likes, 0 comments, checked 2026-11-25; channel then 4 subscribers,
+1 video). Episode 002, *5 Money Mistakes Keeping You Broke*, is seeded
+sample data at the script stage. Cadence: 2 long videos a week (Tue & Fri,
+6–12 min) plus 3–5 Shorts.
 
 ### Approval — the standing rule
 
@@ -148,7 +150,8 @@ no YouTube connection.
 The bots run in the browser while the page is open. They do **not** fetch
 live YouTube data, live trends, or live stats — trends are labelled sample
 starting points for Goldwing to check, and KPIs are whatever Goldwing
-enters. They do not upload, publish, or contact anyone.
+enters, except for Episode 001 / channel KPIs, which are the real numbers
+verified 2026-11-25 and must be updated by hand when they change. They do not upload, publish, or contact anyone.
 
 ## Vanguard Ops — honest limits
 
@@ -161,17 +164,19 @@ enters. They do not upload, publish, or contact anyone.
   no real orders and no real money.
 - **Tasks / Activity:** local only, stored in this browser.
 
-## YouTube upload — not connected yet
+## YouTube upload — SolMarrow connected, wrong channel in SolMarrow
 
-Nothing in this dashboard uploads to YouTube, and there is no YouTube
-connection in this build. Goldwing chose “Connect YouTube so Jarvis can
-upload after approval” — the planned route is SolMarrow, which uploads
-via the official YouTube Data API with the @streetwisemoney Google
-account (no Google Cloud project needed). Until that is connected, the
-approval rule stands and uploads stay manual in YouTube Studio: Jarvis
-prepares, Goldwing approves, Goldwing publishes. No finished video file
-exists yet — Episodes 001/002 are ideas/scripts, not MP4s — so there is
-nothing to upload today even with a connection.
+SolMarrow is connected to Muse (2026-11-25, workspace "Goldwing's
+workspace"), but the YouTube account it sees is Lynail Walker,
+@lynailwalker9289 — Goldwing confirmed that is **not** the channel to
+use. Street Wise Money (@streetwisemoney) is the only channel.
+SolMarrow must be signed in with the @streetwisemoney Google account
+and that channel connected instead; until then it cannot upload to
+Street Wise, and nothing should be uploaded to Lynail Walker.
+The approval rule stands: Jarvis prepares, Goldwing approves, then
+upload private-first, then publish. Episode 001 is already published
+(see above); Episode 002 has no finished video file yet, so there is
+nothing to upload for it today even with the right connection.
 
 ## Automation — what runs without being asked
 
